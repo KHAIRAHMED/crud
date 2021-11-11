@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Learning CRUD</h1>
+
+    <!-- C = Create Operation  -->
+
+    <form action="/addProduct" method="POST">
+        <input type="text" name="name" , placeholder="Name"> <br>
+        <input type="text" name="price" , placeholder="price"> <br>
+        <input type="text" name="quantity" , placeholder="Quantity"> <br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <!-- R = Read Operation  -->
+    <div id="readData"></div>
+    <!-- U = update Operation  -->
+    <div id="update"></div>
+
+
+    <script>
+        //  <!-- R = Read Operation  -->
+        const readData = ()=>{
+            fetch("/products")
+            .then(res => res.json())
+            .then(data => {
+                const readProducts = document.getElementById("readData")
+                readProducts.innerHTML =''
+                data.forEach(pd => {
+                    const div = document.createElement("div")
+                    div.innerHTML = `
+
+                        <h3>Name : ${pd.name}
+                            ${pd.price}
+                            ${pd.quantity}
+                            <button onclick= deleteData(event,'${pd._id}')>Delete</button>
+                            <button onclick= updateData('${pd._id}')>Update</button>
+                        <h3>
+
+                    `
+                    readProducts.appendChild(div)
+                });
+            
+            })
+        }
+        readData()
+
+        // D = Delete Operation
+        const deleteData = (event,id)=>{
+            fetch(`/delete/${id}`,{
+                method:"DELETE"
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data){
+                    event.target.parentNode.style.display = "none"
+                }
+            })
+        }
+
+        const updateData = (id)=>{
+            fetch(`/product/${id}`)
+            .then(res => res.json())
+            .then(result => {
+                const update = document.getElementById("update")
+                update.innerHTML = `
+                <input type="text" id="price" value=${result.price} placeholder="Update Price">
+                <input type="text" id="quantity"  value=${result.quantity} placeholder="Update Quantity">
+                <button onclick=updateValue('${result._id}')> Submit</button>
+                `
+            })
+        }
+
+        const updateValue = (id)=>{
+            const price = document.getElementById("price").value
+            const quantity = document.getElementById("quantity").value
+            const product = {id , price , quantity }
+
+            fetch(`/update/${id}`,{
+                method:"PATCH",
+                headers :{
+                    'Content-Type': 'application/json'
+                },
+                body:JSON.stringify(product)
+            })
+            .then(res => res.json())
+            .then(result => {
+               if(result){
+                   readData()
+                   document.getElementById("update").innerHTML = ""
+               }
+            })
+        }
+    </script>
+</body>
+</html>
